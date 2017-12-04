@@ -17,16 +17,16 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Plugin;
 import org.gradle.api.specs.Spec;
 
 /**
  * <p>A {@code PluginCollection} represents a collection of {@link org.gradle.api.Plugin} instances.</p>
- * 
+ *
  * @param <T> The type of plugins which this collection contains.
  */
-public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
+public interface PluginCollection<T extends Plugin> extends DomainObjectCollection<T> {
     /**
      * {@inheritDoc}
      */

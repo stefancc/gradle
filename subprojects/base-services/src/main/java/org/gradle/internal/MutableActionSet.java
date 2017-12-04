@@ -17,6 +17,9 @@ package org.gradle.internal;
 
 import org.gradle.api.Action;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A mutable composite {@link Action}. Actions are executed in the order added, stopping on the first failure.
  *
@@ -25,17 +28,35 @@ import org.gradle.api.Action;
  * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
  */
 public class MutableActionSet<T> implements Action<T> {
-    private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
+    private List<Action<? super T>> actions;
 
     public void add(Action<? super T> action) {
-        this.actions = actions.add(action);
+        if (action == Actions.doNothing()) {
+            return;
+        }
+        if (actions != null) {
+            for (Action<? super T> existing : actions) {
+                if (existing == action || existing.equals(action)) {
+                    return;
+                }
+            }
+        }
+        if (actions == null) {
+            actions = new ArrayList<Action<? super T>>(3);
+        }
+        actions.add(action);
     }
 
     public void execute(T t) {
-        actions.execute(t);
+        if (actions == null) {
+            return;
+        }
+        for (Action<? super T> action : new ArrayList<Action<? super T>>(actions)) {
+            action.execute(t);
+        }
     }
 
     public boolean isEmpty() {
-        return actions.isEmpty();
+        return actions == null || actions.isEmpty();
     }
 }
