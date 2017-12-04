@@ -15,23 +15,22 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.util.GUtil;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class UnionFileCollection extends CompositeFileCollection {
-    private final Set<FileCollection> source;
+    private Set<FileCollection> source;
 
     public UnionFileCollection(FileCollection... source) {
-        this(Arrays.asList(source));
+        this.source = ImmutableSet.copyOf(source);
     }
 
     public UnionFileCollection(Iterable<? extends FileCollection> source) {
-        this.source = GUtil.addToCollection(new LinkedHashSet<FileCollection>(), source);
+        this.source = ImmutableSet.copyOf(source);
     }
 
     public String getDisplayName() {
@@ -44,7 +43,7 @@ public class UnionFileCollection extends CompositeFileCollection {
 
     @Override
     public FileCollection add(FileCollection collection) {
-        source.add(collection);
+        source = Sets.union(source, ImmutableSet.of(collection));
         return this;
     }
 
