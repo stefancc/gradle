@@ -57,7 +57,7 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }
-            return getRelativeSnapshot(fileSnapshot, stringInterner);
+            return getRelativeSnapshot(fileSnapshot);
         }
     },
 
@@ -77,7 +77,7 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }
-            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName(), stringInterner);
+            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName().length());
         }
     },
 
@@ -116,25 +116,18 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
     }
 
     @VisibleForTesting
-    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-        String[] segments = fileSnapshot.getRelativePath().getSegments();
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0, len = segments.length; i < len; i++) {
-            if (i != 0) {
-                builder.append('/');
-            }
-            builder.append(segments[i]);
+    static NormalizedFileSnapshot getRelativeSnapshot(final FileSnapshot fileSnapshot) {
+        int length = 0;
+        for (String segment : fileSnapshot.getRelativePath().getSegments()) {
+            length += segment.length();
         }
-        return getRelativeSnapshot(fileSnapshot, builder.toString(), stringInterner);
+        length += fileSnapshot.getRelativePath().getSegments().length - 1;
+        return getRelativeSnapshot(fileSnapshot, length);
     }
 
-    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, String normalizedPath, StringInterner stringInterner) {
+    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, int normalizedPathLength) {
         FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
         String absolutePath = fileSnapshot.getPath();
-        if (absolutePath.endsWith(normalizedPath)) {
-            return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), contentSnapshot);
-        } else {
-            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), contentSnapshot);
-        }
+        return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPathLength, contentSnapshot);
     }
 }
