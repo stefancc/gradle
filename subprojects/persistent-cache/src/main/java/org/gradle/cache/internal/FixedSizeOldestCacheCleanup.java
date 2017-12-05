@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public final class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
+public class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
     private static final Logger LOGGER = LoggerFactory.getLogger(FixedSizeOldestCacheCleanup.class);
     private static final Comparator<File> NEWEST_FIRST = Ordering.natural().onResultOf(new Function<File, Comparable<Long>>() {
         @Override
@@ -40,12 +39,9 @@ public final class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
     }).reverse();
 
     private final long targetSizeInMB;
-    private final String partialFileSuffix;
 
-    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB, String partialFileSuffix) {
-        super(buildOperationExecutor);
+    public FixedSizeOldestCacheCleanup(long targetSizeInMB) {
         this.targetSizeInMB = targetSizeInMB;
-        this.partialFileSuffix = partialFileSuffix;
     }
 
     protected List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup) {
@@ -68,9 +64,5 @@ public final class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
         LOGGER.info("{} consuming {} (target: {} MB).", persistentCache, FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
 
         return filesForDeletion;
-    }
-
-    protected boolean canBeDeleted(String name) {
-        return super.canBeDeleted(name) && !name.endsWith(partialFileSuffix);
     }
 }
