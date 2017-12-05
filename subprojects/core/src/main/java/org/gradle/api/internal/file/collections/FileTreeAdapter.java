@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
@@ -23,6 +24,7 @@ import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
 import java.util.Collection;
@@ -118,6 +120,18 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             visitor.visitDirectoryTree(directoryFileTree);
         } else {
             visitor.visitTree(this);
+        }
+    }
+
+    @Override
+    public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
+        if (tree instanceof PatternFilterableFileTree) {
+            PatternSet patterns = new PatternSet();
+            filterConfigAction.execute(patterns);
+            PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
+            return new FileTreeAdapter(filterableTree.filter(patterns));
+        } else {
+            return super.matching(filterConfigAction);
         }
     }
 
