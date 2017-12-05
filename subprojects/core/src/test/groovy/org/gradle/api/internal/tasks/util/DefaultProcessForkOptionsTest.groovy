@@ -33,15 +33,14 @@ import static org.junit.Assert.assertThat
 public class DefaultProcessForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FileResolver resolver = context.mock(FileResolver.class)
-    private final Factory workingDir = context.mock(Factory.class)
     private DefaultProcessForkOptions options
     private final File baseDir = new File("base-dir")
 
     @Before
     public void setup() {
         context.checking {
-            allowing(resolver).resolveLater(".")
-            will(returnValue(workingDir))
+            allowing(resolver).resolve(".")
+            will(returnValue(baseDir))
         }
         options = new DefaultProcessForkOptions(resolver)
     }
@@ -55,16 +54,11 @@ public class DefaultProcessForkOptionsTest {
     @Test
     public void resolvesWorkingDirectoryOnGet() {
         context.checking {
-            one(resolver).resolveLater(12)
-            will(returnValue(workingDir))
+            one(resolver).resolve(12)
+            will(returnValue(baseDir))
         }
 
         options.workingDir = 12
-
-        context.checking {
-            one(workingDir).create()
-            will(returnValue(baseDir))
-        }
 
         assertThat(options.workingDir, equalTo(baseDir))
     }
@@ -100,7 +94,7 @@ public class DefaultProcessForkOptionsTest {
         ProcessForkOptions target = context.mock(ProcessForkOptions.class)
         context.checking {
             one(target).setExecutable('executable' as Object)
-            one(target).setWorkingDir(workingDir)
+            one(target).setWorkingDir(baseDir)
             one(target).setEnvironment(withParam(not(isEmptyMap())))
         }
 

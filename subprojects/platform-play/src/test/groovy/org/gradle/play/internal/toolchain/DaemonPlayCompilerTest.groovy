@@ -36,9 +36,6 @@ class DaemonPlayCompilerTest extends Specification {
     def setup(){
         _ * spec.getForkOptions() >> forkOptions
         _ * forkOptions.jvmArgs >> []
-        _ * fileResolver.resolveLater(_) >> Stub(Factory) {
-            create() >> Mock(File)
-        }
     }
 
     def "passes compile classpath and packages to daemon options"() {

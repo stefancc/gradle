@@ -17,20 +17,21 @@
 
 package org.gradle.api.internal.tasks.util
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.jvm.Jvm
+import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import java.nio.charset.Charset
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
-import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.Factory
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.nullValue
+import static org.junit.Assert.assertThat
 
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {
@@ -38,8 +39,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     private DefaultJavaForkOptions options
 
     def setup() {
-        _ * resolver.resolveLater(_ as File) >> { args -> Stub(Factory) { create() >> args[0] } }
-        _ * resolver.resolveLater(_ as String) >> { args -> Stub(Factory) { create() >> new File(args[0]) } }
+        _ * resolver.resolve(_ as File) >> { args -> args[0] }
+        _ * resolver.resolve(_ as String) >> { args -> new File(args[0]) }
         options = new DefaultJavaForkOptions(resolver, Jvm.current())
     }
 
@@ -297,7 +298,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
@@ -308,7 +309,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "allJvmArgs includes bootstrapClasspath"() {
         when:
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
         options.bootstrapClasspath(files)
 
         then:
@@ -319,7 +320,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
         options.bootstrapClasspath(files[0])
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 
@@ -651,8 +652,8 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "is compatible with same bootstrapClasspath"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.resolver())
-        def other = new DefaultJavaForkOptions(TestFiles.resolver())
+        def options = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
+        def other = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
 
         when:
         options.with {
@@ -671,8 +672,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "is not compatible with different bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file2.jar', 'file3.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.resolver())
-        def other = new DefaultJavaForkOptions(TestFiles.resolver())
+        def options = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
+        def other = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
 
         when:
         options.with {
@@ -805,8 +806,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "can merge options with bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file3.jar', 'file4.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.resolver())
-        def other = new DefaultJavaForkOptions(TestFiles.resolver())
+        def options = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
+        def other = new DefaultJavaForkOptions(TestFiles.resolver(new File("").canonicalFile))
 
         when:
         options.with {
