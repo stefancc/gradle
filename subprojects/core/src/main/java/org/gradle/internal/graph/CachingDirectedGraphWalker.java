@@ -16,9 +16,18 @@
 
 package org.gradle.internal.graph;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.util.GUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A graph walker which collects the values reachable from a given set of start nodes. Handles cycles in the graph. Can
@@ -163,11 +172,11 @@ public class CachingDirectedGraphWalker<N, T> {
             }
         }
 
-        Set<T> values = new LinkedHashSet<T>();
+        ImmutableSet.Builder<T> values = ImmutableSet.builder();
         for (N startNode : startNodes) {
             values.addAll(cachedNodeValues.get(startNode));
         }
-        return values;
+        return values.build();
     }
 
     private static class NodeDetails<N, T> {
